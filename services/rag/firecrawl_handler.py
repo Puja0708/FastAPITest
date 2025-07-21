@@ -1,5 +1,5 @@
-from firecrawl_scraper import scrape_website_firecrawl
-from firestore_utils import store_scraped_data
+from utils.firecrawl_scraper import *
+from utils.firestore_utils import *
 
 def scrape_and_store_website(url: str, workflow_id: str):
     data = scrape_website_firecrawl(url)

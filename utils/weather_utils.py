@@ -45,15 +45,66 @@ def get_rainfall_data(location: str) -> float:
     forecast = get_weather_forecast(location)
     return forecast.get("precipitation_mm", 0.0)
 
-
 def get_soil_moisture(location: str) -> float:
-    # Placeholder: You can integrate NASA SMAP or similar APIs for real data
-    return 0.21
+    """
+    Get estimated soil moisture data for a given location using Open-Meteo API.
+
+    Args:
+        location (str): Name of the location (e.g., "New Delhi, India").
+
+    Returns:
+        float: Soil moisture value (m3/m3) or -1.0 if not found.
+    """
+    try:
+        # Step 1: Geocode the location
+        geo_url = "https://nominatim.openstreetmap.org/search"
+        geo_params = {"q": location, "format": "json", "limit": 1}
+        geo_res = requests.get(geo_url, params=geo_params, timeout=10)
+        geo_res.raise_for_status()
+        geo_data = geo_res.json()
+        if not geo_data:
+            return -1.0
+        lat, lon = geo_data[0]["lat"], geo_data[0]["lon"]
+
+        # Step 2: Query Open-Meteo for soil moisture
+        soil_url = "https://api.open-meteo.com/v1/forecast"
+        soil_params = {
+            "latitude": lat,
+            "longitude": lon,
+            "hourly": "soil_moisture_0_1cm",
+            "forecast_days": 1,
+            "timezone": "auto"
+        }
+        soil_res = requests.get(soil_url, params=soil_params, timeout=10)
+        soil_res.raise_for_status()
+        soil_data = soil_res.json()
+
+        moisture = soil_data.get("hourly", {}).get("soil_moisture_0_1cm", [])
+        return float(moisture[0]) if moisture else -1.0
+
+    except Exception as e:
+        print(f"Error fetching soil moisture: {e}")
+        return -1.0
+
+
+# def get_soil_moisture(location: str) -> float:
+#     # Placeholder: You can integrate NASA SMAP or similar APIs for real data
+#     return 0.21
 
 
 def get_wind_speed(location: str) -> float:
     forecast = get_weather_forecast(location)
     return forecast.get("wind_speed_kmh", 0.0)
+
+def get_lat_lon(location: str, api_key: str) -> tuple:
+    url = "https://maps.googleapis.com/maps/api/geocode/json"
+    params = {"address": location, "key": api_key}
+    response = requests.get(url, params=params).json()
+    if response["status"] == "OK":
+        loc = response["results"][0]["geometry"]["location"]
+        return loc["lat"], loc["lng"]
+    return (None, None)
+
 
 
 def get_temperature_range(location: str) -> tuple:
