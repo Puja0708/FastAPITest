@@ -1,4 +1,4 @@
-from weather_utils import *
+from utils.weather_utils import  *
 
 def get_all_weather_data(location: str):
     return {
