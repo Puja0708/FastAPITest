@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: summarizer-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: summarizer
+  template:
+    metadata:
+      labels:
+        app: summarizer
+    spec:
+      containers:
+      - name: summarizer
+        image: gcr.io/<your-project-id>/summarizer-app
+        ports:
+        - containerPort: 80
+        envFrom:
+        - secretRef:
+            name: summarizer-env
